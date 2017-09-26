@@ -218,6 +218,9 @@ def update_required(ebs, env, params):
     if params["version_label"] and env["VersionLabel"] != params["version_label"]:
         updates.append(('VersionLabel', env['VersionLabel'], params['version_label']))
 
+    if params["solution_stack_name"] and env["SolutionStackName"] != params["solution_stack_name"]:
+        updates.append(('SolutionStackName', env['SolutionStackName'], params['solution_stack_name']))
+
     if params.get("template_name", None) and not env.has_key("TemplateName"):
         updates.append(('TemplateName', None, params['template_name']))
     elif env.has_key("TemplateName") and env["TemplateName"] != params["template_name"]:
@@ -377,6 +380,7 @@ def main():
                                        EnvironmentName=env_name,
                                        VersionLabel=version_label,
                                        TemplateName=template_name,
+                                       SolutionStackName=solution_stack_name,
                                        Description=description,
                                        OptionSettings=option_settings))
 
