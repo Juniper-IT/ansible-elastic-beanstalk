@@ -232,6 +232,7 @@ def update_required(ebs, env, params):
     options = result["ConfigurationSettings"][0]["OptionSettings"]
 
     for setting in params["option_settings"]:
+        print(setting);
         change = new_or_changed_option(options, setting)
         if change is not None:
             updates.append(change)
@@ -376,6 +377,7 @@ def main():
             env = describe_env(ebs, app_name, env_name, [])
             updates = update_required(ebs, env, module.params)
             if len(updates) > 0:
+                print(option_settings);
                 ebs.update_environment(**filter_empty(
                                        EnvironmentName=env_name,
                                        VersionLabel=version_label,
