@@ -401,6 +401,8 @@ def main():
                            version_is_updated(version_label, environment))
 
                 print "\n*** do update environment ***** after wait for\n"
+                print (env)
+                print "\n*** do update environment ***** after print env\n"
                 
                 result = dict(changed=True, env=env, updates=updates)
                 print "\n*** do update environment ***** dict\n"
