@@ -146,6 +146,7 @@ output:
 
 try:
     import boto3
+    import traceback
     from botocore.exceptions import ClientError
     HAS_BOTO3 = True
 except ImportError:
@@ -417,6 +418,9 @@ def main():
             else:
                 result = dict(changed=False, env=env)
         except ClientError, e:
+            print "\n*** print exception ***** \n"
+            traceback.print_exc()
+            traceback.print_tb()
             module.fail_json(msg=e.message, **camel_dict_to_snake_dict(e.response))
 
     if state == 'absent':
