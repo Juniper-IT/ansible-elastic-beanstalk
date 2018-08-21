@@ -232,10 +232,13 @@ def update_required(ebs, env, params):
     options = result["ConfigurationSettings"][0]["OptionSettings"]
 
     for setting in params["option_settings"]:
+        print "*** before print option setting ***"
         print(setting);
         change = new_or_changed_option(options, setting)
         if change is not None:
+            print "*** before update.append ***"
             updates.append(change)
+            print "*** after update.append ***"
 
     return updates
 
@@ -381,6 +384,7 @@ def main():
             updates = update_required(ebs, env, module.params)
             print "\n*** do update environment ***** after update required\n"
             if len(updates) > 0:
+                print "\n*** print option setting";
                 print(option_settings);
                 ebs.update_environment(**filter_empty(
                                        EnvironmentName=env_name,
