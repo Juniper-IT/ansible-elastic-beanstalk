@@ -375,11 +375,11 @@ def main():
 
     if update:
         try:
-            print "*** do update environment ***"
+            print "\n*** do update environment ***\n"
             env = describe_env(ebs, app_name, env_name, [])
-            print "*** do update environment ***** after desc"
+            print "\n*** do update environment ***** after desc\n"
             updates = update_required(ebs, env, module.params)
-            print "*** do update environment ***** after update required"
+            print "\n*** do update environment ***** after update required\n"
             if len(updates) > 0:
                 print(option_settings);
                 ebs.update_environment(**filter_empty(
@@ -390,15 +390,16 @@ def main():
                                        Description=description,
                                        OptionSettings=option_settings))
                                        
-                print "*** do update environment ***** after update_environment"
+                print "\n*** do update environment ***** after update_environment\n"
 
                 env = wait_for(ebs, app_name, env_name, wait_timeout,
                          lambda environment: status_is_ready(environment) and
                            version_is_updated(version_label, environment))
 
-                print "*** do update environment ***** after wait for"
+                print "\n*** do update environment ***** after wait for\n"
                 
                 result = dict(changed=True, env=env, updates=updates)
+                print "\n*** do update environment ***** dict\n"
             else:
                 result = dict(changed=False, env=env)
         except ClientError, e:
