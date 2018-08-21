@@ -382,12 +382,12 @@ def main():
             env = describe_env(ebs, app_name, env_name, [])
             print "----env---"
             print (env);
-            pring "-------"
+            print "-------"
             print "\n*** do update environment ***** after desc\n"
             updates = update_required(ebs, env, module.params)
             print "----update---"
             print (updates);
-            pring "-------"
+            print "-------"
             print "\n*** do update environment ***** after update required\n"
             if len(updates) > 0:
                 print "\n*** print option setting";
