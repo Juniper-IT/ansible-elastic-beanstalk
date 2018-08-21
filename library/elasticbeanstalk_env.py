@@ -352,6 +352,7 @@ def main():
 
     if state == 'present':
         try:
+            print "*** check create environment ***"
             tags_to_apply = [ {'Key':k,'Value':v} for k,v in tags.iteritems()]
             ebs.create_environment(**filter_empty(ApplicationName=app_name,
                                                   EnvironmentName=env_name,
@@ -374,8 +375,11 @@ def main():
 
     if update:
         try:
+            print "*** do update environment ***"
             env = describe_env(ebs, app_name, env_name, [])
+            print "*** do update environment ***** after desc"
             updates = update_required(ebs, env, module.params)
+            print "*** do update environment ***** after update required"
             if len(updates) > 0:
                 print(option_settings);
                 ebs.update_environment(**filter_empty(
@@ -385,11 +389,15 @@ def main():
                                        SolutionStackName=solution_stack_name,
                                        Description=description,
                                        OptionSettings=option_settings))
+                                       
+                print "*** do update environment ***** after update_environment"
 
                 env = wait_for(ebs, app_name, env_name, wait_timeout,
                          lambda environment: status_is_ready(environment) and
                            version_is_updated(version_label, environment))
 
+                print "*** do update environment ***** after wait for"
+                
                 result = dict(changed=True, env=env, updates=updates)
             else:
                 result = dict(changed=False, env=env)
