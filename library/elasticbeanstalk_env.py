@@ -415,6 +415,8 @@ def main():
                 
                 result = dict(changed=True, env=env, updates=updates)
                 print "\n*** do update environment ***** dict\n"
+                print (result);
+                print "\n*** do update environment ***** after dict result\n"
             else:
                 result = dict(changed=False, env=env)
         except ClientError, e:
