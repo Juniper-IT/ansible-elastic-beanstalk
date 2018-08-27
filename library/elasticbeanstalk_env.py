@@ -146,7 +146,6 @@ output:
 
 try:
     import boto3
-    import traceback
     from botocore.exceptions import ClientError
     HAS_BOTO3 = True
 except ImportError:
@@ -233,12 +232,9 @@ def update_required(ebs, env, params):
     options = result["ConfigurationSettings"][0]["OptionSettings"]
 
     for setting in params["option_settings"]:
-        print "*** before print option setting ***"
         change = new_or_changed_option(options, setting)
         if change is not None:
-            print "*** before update.append ***"
             updates.append(change)
-            print "*** after update.append ***"
 
     return updates
 
@@ -355,7 +351,6 @@ def main():
 
     if state == 'present':
         try:
-            print "*** check create environment ***"
             tags_to_apply = [ {'Key':k,'Value':v} for k,v in tags.iteritems()]
             ebs.create_environment(**filter_empty(ApplicationName=app_name,
                                                   EnvironmentName=env_name,
@@ -378,17 +373,8 @@ def main():
 
     if update:
         try:
-            print "\n*** do update environment ***\n"
             env = describe_env(ebs, app_name, env_name, [])
-            print "----env---"
-            print (env);
-            print "-------"
-            print "\n*** do update environment ***** after desc\n"
             updates = update_required(ebs, env, module.params)
-            print "----update---"
-            print (updates);
-            print "-------"
-            print "\n*** do update environment ***** after update required\n"
             if len(updates) > 0:
                 ebs.update_environment(**filter_empty(
                                        EnvironmentName=env_name,
@@ -397,29 +383,15 @@ def main():
                                        SolutionStackName=solution_stack_name,
                                        Description=description,
                                        OptionSettings=option_settings))
-                                       
-                print "\n*** do update environment ***** after update_environment\n"
 
                 env = wait_for(ebs, app_name, env_name, wait_timeout,
                          lambda environment: status_is_ready(environment) and
                            version_is_updated(version_label, environment))
 
-                print "\n*** do update environment ***** after wait for\n"
-                print "----env2---"
-                print (env)
-                print "-------"
-                print "\n*** do update environment ***** after print env\n"
-                
                 result = dict(changed=True, env=env, updates=updates)
-                print "\n*** do update environment ***** dict\n"
-                print (result);
-                print "\n*** do update environment ***** after dict result\n"
             else:
                 result = dict(changed=False, env=env)
         except ClientError, e:
-            print "\n*** print exception ***** \n"
-            traceback.print_exc()
-            traceback.print_tb()
             module.fail_json(msg=e.message, **camel_dict_to_snake_dict(e.response))
 
     if state == 'absent':
