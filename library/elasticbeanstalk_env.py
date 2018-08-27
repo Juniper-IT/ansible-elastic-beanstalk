@@ -233,7 +233,6 @@ def update_required(ebs, env, params):
 
     for setting in params["option_settings"]:
         change = new_or_changed_option(options, setting)
-        print 'change ------ ' + change
         
         if change is not None:
             updates.append(change)
