@@ -303,10 +303,6 @@ def main():
     module = AnsibleModule(argument_spec=argument_spec,
                            mutually_exclusive=[['solution_stack_name','template_name']],
                            supports_check_mode=True)
-                           
-    print "---------------begin"
-    print module.params['option_settings']
-    print "end-------------"
 
     if not HAS_BOTO3:
         module.fail_json(msg='boto3 required for this module')
