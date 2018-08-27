@@ -233,6 +233,8 @@ def update_required(ebs, env, params):
 
     for setting in params["option_settings"]:
         change = new_or_changed_option(options, setting)
+        print 'change ------ ' + change
+        
         if change is not None:
             updates.append(change)
 
@@ -240,6 +242,8 @@ def update_required(ebs, env, params):
 
 def new_or_changed_option(options, setting):
     for option in options:
+        print 'option["Namespace"] ------ ' + option["Namespace"]
+        print 'setting["OptionName"] ------ ' + setting["Namespace"]
         if option["Namespace"] == setting["Namespace"] and \
             option["OptionName"] == setting["OptionName"]:
 
