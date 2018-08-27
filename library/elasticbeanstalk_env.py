@@ -251,7 +251,8 @@ def new_or_changed_option(options, setting):
             else:
                 return (option["Namespace"] + ':' + option["OptionName"], option["Value"], setting["Value"])
                 
-        if option["OptionName"] in ["InstancePorts", "LoadBalancerPorts", "SSLProtocols","SSLReferencePolicy"]:
+        if option["OptionName"] in ["InstancePorts", "LoadBalancerPorts", "SSLProtocols","SSLReferencePolicy"] and \
+            setting['OptionName'] in ["PolicyNames","SSLReferencePolicy"]:
             return None
 
     return (setting["Namespace"] + ':' + setting["OptionName"], "<NEW>", setting["Value"])
