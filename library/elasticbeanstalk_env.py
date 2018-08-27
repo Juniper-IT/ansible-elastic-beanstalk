@@ -233,9 +233,6 @@ def update_required(ebs, env, params):
 
     for setting in params["option_settings"]:
         change = new_or_changed_option(options, setting)
-        print 'change ------ '
-        print change
-        print "change end -----"
         if change is not None:
             updates.append(change)
 
@@ -301,6 +298,10 @@ def main():
     module = AnsibleModule(argument_spec=argument_spec,
                            mutually_exclusive=[['solution_stack_name','template_name']],
                            supports_check_mode=True)
+                           
+    print "---------------begin"
+    print module.params['option_settings']
+    print "end-------------"
 
     if not HAS_BOTO3:
         module.fail_json(msg='boto3 required for this module')
