@@ -243,8 +243,8 @@ def new_or_changed_option(options, setting):
         if option["Namespace"] == setting["Namespace"] and \
             option["OptionName"] == setting["OptionName"]:
 
-            if option["OptionName"] in ["InstancePorts", "LoadBalancerPorts", "SSLProtocols","SSLReferencePolicy"]:
-                print '------OptionName';
+            if option["OptionName"] in ["InstancePorts", "LoadBalancerPorts", "SSLProtocols","SSLReferencePolicy"] and \
+                setting["OptionName"] in ['PolicyNames','SSLReferencePolicy']:
                 return None
             elif (setting['Namespace'] in ['aws:autoscaling:launchconfiguration','aws:ec2:vpc'] and \
                 setting['OptionName'] in ['SecurityGroups', 'ELBSubnets', 'Subnets'] and \
