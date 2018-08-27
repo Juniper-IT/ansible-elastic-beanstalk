@@ -248,13 +248,13 @@ def new_or_changed_option(options, setting):
                 set(setting['Value'].split(',')).issubset(setting['Value'].split(','))) or \
                 option["Value"] == setting["Value"]:
                 return None
+            elif option["OptionName"] in ["InstancePorts", "LoadBalancerPorts", "SSLProtocols","SSLReferencePolicy"] and \
+                setting['OptionName'] in ["PolicyNames","SSLReferencePolicy"]:
+                return None
             else:
                 return (option["Namespace"] + ':' + option["OptionName"], option["Value"], setting["Value"])
                 
-        if option["OptionName"] in ["InstancePorts", "LoadBalancerPorts", "SSLProtocols","SSLReferencePolicy"] and \
-            setting['OptionName'] in ["PolicyNames","SSLReferencePolicy"]:
-            return None
-
+        
     return (setting["Namespace"] + ':' + setting["OptionName"], "<NEW>", setting["Value"])
 
 def check_env(ebs, app_name, env_name, module):
