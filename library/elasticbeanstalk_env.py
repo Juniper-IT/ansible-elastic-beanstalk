@@ -244,6 +244,7 @@ def new_or_changed_option(options, setting):
             option["OptionName"] == setting["OptionName"]:
 
             if option["OptionName"] in ["InstancePorts", "LoadBalancerPorts", "SSLProtocols","SSLReferencePolicy"]:
+                print '------OptionName';
                 return None
             elif (setting['Namespace'] in ['aws:autoscaling:launchconfiguration','aws:ec2:vpc'] and \
                 setting['OptionName'] in ['SecurityGroups', 'ELBSubnets', 'Subnets'] and \
