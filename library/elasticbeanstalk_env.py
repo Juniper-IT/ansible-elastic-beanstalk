@@ -232,9 +232,6 @@ def update_required(ebs, env, params):
     options = result["ConfigurationSettings"][0]["OptionSettings"]
 
     for setting in params["option_settings"]:
-        print "--------------"
-        print setting
-        print "------end----"
         change = new_or_changed_option(options, setting)
         if change is not None:
             updates.append(change)
@@ -242,6 +239,7 @@ def update_required(ebs, env, params):
     return updates
 
 def new_or_changed_option(options, setting):
+    if setting[PolicyNames]:
     for option in options:
         if option["Namespace"] == setting["Namespace"] and \
             option["OptionName"] == setting["OptionName"]:
