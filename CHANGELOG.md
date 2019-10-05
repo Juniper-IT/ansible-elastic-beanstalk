@@ -1,4 +1,6 @@
 # Changelog
+#### 3.0.0 October 4 2019 - WIP
+- Development version to target Python 3.7 , Ansible 2.8.0
 
 #### 2.0.1 January 6 2017
 - Fixed #21 option settings failed to be applied by elasticbeanstalk_env module 
