@@ -1,6 +1,5 @@
 #!/usr/bin/python
 
-
 DOCUMENTATION = '''
 ---
 module: elasticbeanstalk_env
@@ -146,12 +145,14 @@ output:
 '''
 
 try:
-    from datetime import time
+
     import boto3
     from botocore.exceptions import ClientError
+
     HAS_BOTO3 = True
 except ImportError:
     HAS_BOTO3 = False
+
 
 def wait_for(ebs, app_name, env_name, wait_timeout, testfunc):
     timeout_time = time.time() + wait_timeout
@@ -170,20 +171,26 @@ def wait_for(ebs, app_name, env_name, wait_timeout, testfunc):
 
         time.sleep(15)
 
+
 def version_is_updated(version_label, env):
-    return version_label == ""  or env["VersionLabel"] == version_label
+    return version_label == "" or env["VersionLabel"] == version_label
+
 
 def status_is_ready(env):
     return env["Status"] == "Ready"
 
+
 def health_is_green(env):
     return env["Health"] == "Green"
+
 
 def health_is_grey(env):
     return env["Health"] == "Grey"
 
+
 def terminated(env):
     return env["Status"] == "Terminated"
+
 
 def describe_env(ebs, app_name, env_name, ignored_statuses):
     environment_names = [] if env_name is None else [env_name]
@@ -201,6 +208,7 @@ def describe_env(ebs, app_name, env_name, ignored_statuses):
 
     return envs if env_name is None else envs[0]
 
+
 def describe_env_config_settings(ebs, app_name, env_name):
     result = ebs.describe_configuration_settings(ApplicationName=app_name, EnvironmentName=env_name)
     envs = result["ConfigurationSettings"]
@@ -208,12 +216,13 @@ def describe_env_config_settings(ebs, app_name, env_name):
     if not isinstance(envs, list): return None
 
     for env in envs:
-        if env.has_key("Status") and env["Status"] in ["Terminated","Terminating"]:
+        if env.has_key("Status") and env["Status"] in ["Terminated", "Terminating"]:
             envs.remove(env)
 
     if len(envs) == 0: return None
 
     return envs if env_name is None else envs[0]
+
 
 def update_required(ebs, env, params):
     updates = []
@@ -240,33 +249,35 @@ def update_required(ebs, env, params):
 
     return updates
 
+
 def new_or_changed_option(options, setting):
     for option in options:
         if option["Namespace"] == setting["Namespace"] and \
-            option["OptionName"] == setting["OptionName"]:
+                option["OptionName"] == setting["OptionName"]:
 
-            if (setting['Namespace'] in ['aws:autoscaling:launchconfiguration','aws:ec2:vpc'] and \
-                setting['OptionName'] in ['SecurityGroups', 'ELBSubnets', 'Subnets'] and \
-                set(setting['Value'].split(',')).issubset(setting['Value'].split(','))) or \
-                option["Value"] == setting["Value"]:
+            if (setting['Namespace'] in ['aws:autoscaling:launchconfiguration', 'aws:ec2:vpc'] and setting[
+                'OptionName'] in ['SecurityGroups', 'ELBSubnets', 'Subnets'] and set(
+                setting['Value'].split(',')).issubset(setting['Value'].split(','))) or \
+                    option["Value"] == setting["Value"]:
                 return None
             else:
-                return (option["Namespace"] + ':' + option["OptionName"], option["Value"], setting["Value"])
+                return option["Namespace"] + ':' + option["OptionName"], option["Value"], setting["Value"]
 
-    return (setting["Namespace"] + ':' + setting["OptionName"], "<NEW>", setting["Value"])
+    return setting["Namespace"] + ':' + setting["OptionName"], "<NEW>", setting["Value"]
+
 
 def check_env(ebs, app_name, env_name, module):
     state = module.params['state']
-    env = describe_env(ebs, app_name, env_name, ["Terminated","Terminating"])
+    env = describe_env(ebs, app_name, env_name, ["Terminated", "Terminating"])
 
     result = {}
 
     if state == 'present' and env is None:
-        result = dict(changed=True, output = "Environment would be created")
+        result = dict(changed=True, output="Environment would be created")
     elif state == 'present' and env is not None:
         updates = update_required(ebs, env, module.params)
         if len(updates) > 0:
-            result = dict(changed=True, output = "Environment would be updated", env=env, updates=updates)
+            result = dict(changed=True, output="Environment would be updated", env=env, updates=updates)
         else:
             result = dict(changed=False, output="Environment is up-to-date", env=env)
     elif state == 'absent' and env is None:
@@ -276,29 +287,31 @@ def check_env(ebs, app_name, env_name, module):
 
     module.exit_json(**result)
 
+
 def filter_empty(**kwargs):
-    return {k:v for k,v in kwargs.items() if v}
+    return {k: v for k, v in kwargs.items() if v}
+
 
 def main():
     argument_spec = ec2_argument_spec()
     argument_spec.update(dict(
-            app_name       = dict(type='str', required=True),
-            env_name       = dict(type='str', required=False),
-            version_label  = dict(type='str', required=False),
-            description    = dict(type='str', required=False),
-            state          = dict(choices=['present','absent','list','details'], default='present'),
-            wait_timeout   = dict(default=900, type='int'),
-            template_name  = dict(type='str', required=False),
-            solution_stack_name = dict(type='str', required=False),
-            cname_prefix = dict(type='str', required=False),
-            option_settings = dict(type='list',default=[]),
-            tags = dict(type='dict',default=dict()),
-            options_to_remove = dict(type='list',default=[]),
-            tier_name = dict(default='WebServer', choices=['WebServer','Worker'])
-        ),
+        app_name=dict(type='str', required=True),
+        env_name=dict(type='str', required=False),
+        version_label=dict(type='str', required=False),
+        description=dict(type='str', required=False),
+        state=dict(choices=['present', 'absent', 'list', 'details'], default='present'),
+        wait_timeout=dict(default=900, type='int'),
+        template_name=dict(type='str', required=False),
+        solution_stack_name=dict(type='str', required=False),
+        cname_prefix=dict(type='str', required=False),
+        option_settings=dict(type='list', default=[]),
+        tags=dict(type='dict', default=dict()),
+        options_to_remove=dict(type='list', default=[]),
+        tier_name=dict(default='WebServer', choices=['WebServer', 'Worker'])
+    ),
     )
     module = AnsibleModule(argument_spec=argument_spec,
-                           mutually_exclusive=[['solution_stack_name','template_name']],
+                           mutually_exclusive=[['solution_stack_name', 'template_name']],
                            supports_check_mode=True)
 
     if not HAS_BOTO3:
@@ -326,7 +339,7 @@ def main():
     region, ec2_url, aws_connect_params = get_aws_connection_info(module, boto3=True)
     if region:
         ebs = boto3_conn(module, conn_type='client', resource='elasticbeanstalk',
-                region=region, endpoint=ec2_url, **aws_connect_params)
+                         region=region, endpoint=ec2_url, **aws_connect_params)
     else:
         module.fail_json(msg='region must be specified')
 
@@ -353,7 +366,7 @@ def main():
 
     if state == 'present':
         try:
-            tags_to_apply = [ {'Key':k,'Value':v} for k,v in tags.items()]
+            tags_to_apply = [{'Key': k, 'Value': v} for k, v in tags.items()]
             ebs.create_environment(**filter_empty(ApplicationName=app_name,
                                                   EnvironmentName=env_name,
                                                   VersionLabel=version_label,
@@ -363,7 +376,7 @@ def main():
                                                   CNAMEPrefix=cname_prefix,
                                                   Description=description,
                                                   OptionSettings=option_settings,
-                                                  Tier={'Name':tier_name, 'Type':tier_type, 'Version':'1.0'}))
+                                                  Tier={'Name': tier_name, 'Type': tier_type, 'Version': '1.0'}))
 
             env = wait_for(ebs, app_name, env_name, wait_timeout, status_is_ready)
             result = dict(changed=True, env=env)
@@ -379,16 +392,16 @@ def main():
             updates = update_required(ebs, env, module.params)
             if len(updates) > 0:
                 ebs.update_environment(**filter_empty(
-                                       EnvironmentName=env_name,
-                                       VersionLabel=version_label,
-                                       TemplateName=template_name,
-                                       SolutionStackName=solution_stack_name,
-                                       Description=description,
-                                       OptionSettings=option_settings))
+                    EnvironmentName=env_name,
+                    VersionLabel=version_label,
+                    TemplateName=template_name,
+                    SolutionStackName=solution_stack_name,
+                    Description=description,
+                    OptionSettings=option_settings))
 
                 env = wait_for(ebs, app_name, env_name, wait_timeout,
-                         lambda environment: status_is_ready(environment) and
-                           version_is_updated(version_label, environment))
+                               lambda environment: status_is_ready(environment) and
+                                                   version_is_updated(version_label, environment))
 
                 result = dict(changed=True, env=env, updates=updates)
             else:
@@ -409,6 +422,9 @@ def main():
 
     module.exit_json(**result)
 
+
+import time
+from ansible.module_utils.basic import AnsibleModule
 from ansible.module_utils.basic import *
 from ansible.module_utils.ec2 import boto3_conn, ec2_argument_spec, get_aws_connection_info, camel_dict_to_snake_dict
 
