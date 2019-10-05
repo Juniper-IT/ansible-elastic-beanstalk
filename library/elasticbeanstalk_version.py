@@ -2,265 +2,430 @@
 
 DOCUMENTATION = '''
 ---
-module: elasticbeanstalk_version
-short_description: create, update, delete and list beanstalk application versions
+module: elasticbeanstalk_env
+short_description: create, update, delete beanstalk application environments
 description:
-    - creates, updates, deletes beanstalk versions if both app_name and version_label are provided. Can also list versions associated with application
+    - creates, updates, deletes beanstalk environments.
 options:
   app_name:
     description:
       - name of the beanstalk application you wish to manage the versions of
     required: true
     default: null
+  env_name:
+    description:
+      - unique name for the deployment environment. Must be from 4 to 40 characters in length. The name can contain only letters, numbers, and hyphens. It cannot start or end with a hyphen. This name must be unique in your account.
+    required: true
+    default: null
   version_label:
     description:
-      - label of the version you want create, update or delete
-    required: false
-    default: null
-  s3_bucket:
-    description:
-      - name of the S3 bucket which contains the version source bundle
-    required: false
-    default: null
-  s3_key:
-    description:
-      - S3 key where the source bundle is located. Both s3_bucket and s3_key must be specified in order to create a new version.
+      - label of the version you want to deploy in the environment
     required: false
     default: null
   description:
     description:
-      - describes the version
+      - describes this environment
     required: false
     default: null
-  delete_source:
+  wait_timeout:
     description:
-      - Set to true to delete the source bundle from your storage bucket.
+      - Number of seconds to wait for an environment to change state.
     required: false
-    default: False
+    default: 900
+  template_name:
+    description:
+      - name of the configuration template to use in deployment. You must specify either this parameter or a solution_stack_name
+    required: false
+    default: null
+  solution_stack_name:
+    description:
+      - this is an alternative to specifying a template_name. You must specify either this or a template_name, but not both
+    required: false
+    default: null
+  cname_prefix:
+    description:
+      - if specified, the environment attempts to use this value as the prefix for the CNAME. If not specified, the environment uses the environment name.
+    required: false
+    default: null
+  option_settings:
+    description:
+      - 'A dictionary array of settings to add of the form: { Namespace: ..., OptionName: ... , Value: ... }. If specified, AWS Elastic Beanstalk sets the specified configuration options to the requested value in the configuration set for the new environment. These override the values obtained from the solution stack or the configuration template'
+    required: false
+    default: null
+  tags:
+    description:
+      - A dictionary of Key/Value tags to apply to the environment on creation. Tags cannot be modified once the environment is created.
+    required: false
+    default: null
+  tier_name:
+    description:
+      - name of the tier
+    required: false
+    default: WebServer
+    choices: ['WebServer', 'Worker']
   state:
     description:
-      - whether to ensure the version is present or absent, or to list existing versions
+      - whether to ensure the environment is present or absent, or to list existing environments
     required: false
     default: present
-    choices: ['absent','present','list']
+    choices: ['absent','present','list','details']
+
 author: Harpreet Singh
 extends_documentation_fragment: aws
 '''
 
 EXAMPLES = '''
-# Create or update an application version
-- elasticbeanstalk_version:
-    app_name: Sample App
-    version_label: v1.0.0
-    description: Initial Version
-    s3_bucket: sampleapp-versions-us-east-1
-    s3_key: sample-app-1.0.0.zip
+# Create or update environment
+- elasticbeanstalk_env:
     region: us-east-1
-
-# Delete application version
-- elasticbeanstalk_version:
     app_name: Sample App
-    version_label: v1.0.0
+    env_name: sampleApp-env
+    version_label: Sample Application
+    solution_stack_name: "64bit Amazon Linux 2014.09 v1.2.1 running Docker 1.5.0"
+    option_settings:
+      - Namespace: aws:elasticbeanstalk:application:environment
+        OptionName: PARAM1
+        Value: bar
+      - Namespace: aws:elasticbeanstalk:application:environment
+        OptionName: PARAM2
+        Value: foobar
+    tags:
+      Name: Sample App
+  register: env
+
+# Delete environment
+- elasticbeanstalk_env:
+    app_name: Sample App
+    env_name: sampleApp-env
     state: absent
+    wait_timeout: 360
     region: us-west-2
-
-# List application versions
-- elasticbeanstalk_version:
-    app_name: Sample App
-    state: list
-    region: us-west-1
 '''
 
 RETURN = '''
-version:
-    description: beanstalk application version
+env:
+    description: beanstalk environment
     returned: success and when state != list
     type: dict
     sample: {
+        "AbortableOperationInProgress": false,
         "ApplicationName": "app-name",
-        "DateCreated": "2016-12-28T16:04:50.344000+00:00",
-        "DateUpdated": "2016-12-28T16:05:58.593000+00:00",
-        "Description": "version 1.0.0",
-        "SourceBundle": {
-            "S3Bucket": "s3-bucket",
-            "S3Key": "s3/key/file-1.0.0.zip"
+        "CNAME": "app-name.p55wp6rh2e.us-west-2.elasticbeanstalk.com",
+        "DateCreated": "2016-05-20T19:03:05.090000+00:00",
+        "DateUpdated": "2016-12-09T16:23:55.915000+00:00",
+        "EndpointURL": "awseb-e-g-AWSEBLoa-D0BNVCQMC73I-22790164.us-west-2.elb.amazonaws.com",
+        "EnvironmentId": "e-g2jcgheahs",
+        "EnvironmentLinks": [],
+        "EnvironmentName": "app-name-qa",
+        "Health": "Green",
+        "SolutionStackName": "64bit Amazon Linux 2016.03 v2.1.0 running Docker 1.9.1",
+        "Status": "Ready",
+        "Tier": {
+            "Name": "WebServer",
+            "Type": "Standard",
+            "Version": "1.0"
         },
-        "Status": "UNPROCESSED",
+        "OptionSettings": [
+            // included when state == detail
+            {
+                "Namespace": "aws:autoscaling:asg",
+                "OptionName": "Availability Zones",
+                "ResourceName": "AWSEBAutoScalingGroup",
+                "Value": "Any"
+            }
+            ...
+        ]
         "VersionLabel": "1.0.0"
     }
-versions:
-    description: list of beanstalk application versions
-    returned: when state == list
-    type: list
-    sample: [
-        {
-            "ApplicationName": "app-name",
-            "DateCreated": "2016-12-28T16:04:50.344000+00:00",
-            "DateUpdated": "2016-12-28T16:05:58.593000+00:00",
-            "Description": "version 1.0.0",
-            "SourceBundle": {
-                "S3Bucket": "s3-bucket",
-                "S3Key": "s3/key/file-1.0.0.zip"
-            },
-            "Status": "UNPROCESSED",
-            "VersionLabel": "1.0.0"
-        },
-        {
-            "ApplicationName": "app-name",
-            "DateCreated": "2016-12-28T16:04:50.344000+00:00",
-            "DateUpdated": "2016-12-28T16:05:58.593000+00:00",
-            "Description": "version 1.0.1",
-            "SourceBundle": {
-                "S3Bucket": "s3-bucket",
-                "S3Key": "s3/key/file-1.0.1.zip"
-            },
-            "Status": "UNPROCESSED",
-            "VersionLabel": "1.0.1"
-        }
-    ]
 output:
     description: message indicating what change will occur
     returned: in check mode
     type: string
-    sample: Version is up-to-date
+    sample: Environment is up-to-date
 '''
 
-
 try:
+
     import boto3
+    from botocore.exceptions import ClientError
+
     HAS_BOTO3 = True
 except ImportError:
     HAS_BOTO3 = False
 
-from ansible.module_utils.basic import AnsibleModule
-from ansible.module_utils.ec2 import boto3_conn, ec2_argument_spec, get_aws_connection_info
 
-def describe_version(ebs, app_name, version_label):
-    versions = list_versions(ebs, app_name, version_label)
+def wait_for(ebs, app_name, env_name, wait_timeout, testfunc):
+    timeout_time = time.time() + wait_timeout
 
-    return None if len(versions) != 1 else versions[0]
+    while True:
+        try:
+            env = describe_env(ebs, app_name, env_name, [])
+        except Exception as e:
+            raise e
 
-def list_versions(ebs, app_name, version_label):
-    if version_label is None:
-        versions = ebs.describe_application_versions(ApplicationName=app_name)
-    else:
-        versions = ebs.describe_application_versions(ApplicationName=app_name, VersionLabels=[version_label])
+        if testfunc(env):
+            return env
 
-    return versions["ApplicationVersions"]
+        if time.time() > timeout_time:
+            raise ValueError("The timeout has expired")
 
-def check_version(ebs, version, module):
-    app_name = module.params['app_name']
-    version_label = module.params['version_label']
-    description = module.params['description']
+        time.sleep(15)
+
+
+def version_is_updated(version_label, env):
+    return version_label == "" or env["VersionLabel"] == version_label
+
+
+def status_is_ready(env):
+    return env["Status"] == "Ready"
+
+
+def health_is_green(env):
+    return env["Health"] == "Green"
+
+
+def health_is_grey(env):
+    return env["Health"] == "Grey"
+
+
+def terminated(env):
+    return env["Status"] == "Terminated"
+
+
+def describe_env(ebs, app_name, env_name, ignored_statuses):
+    environment_names = [] if env_name is None else [env_name]
+
+    result = ebs.describe_environments(ApplicationName=app_name, EnvironmentNames=environment_names)
+    envs = result["Environments"]
+
+    if not isinstance(envs, list): return None
+
+    for env in envs:
+        if env.has_key("Status") and env["Status"] in ignored_statuses:
+            envs.remove(env)
+
+    if len(envs) == 0: return None
+
+    return envs if env_name is None else envs[0]
+
+
+def describe_env_config_settings(ebs, app_name, env_name):
+    result = ebs.describe_configuration_settings(ApplicationName=app_name, EnvironmentName=env_name)
+    envs = result["ConfigurationSettings"]
+
+    if not isinstance(envs, list): return None
+
+    for env in envs:
+        if env.has_key("Status") and env["Status"] in ["Terminated", "Terminating"]:
+            envs.remove(env)
+
+    if len(envs) == 0: return None
+
+    return envs if env_name is None else envs[0]
+
+
+def update_required(ebs, env, params):
+    updates = []
+    if params["version_label"] and env["VersionLabel"] != params["version_label"]:
+        updates.append(('VersionLabel', env['VersionLabel'], params['version_label']))
+
+    if params["solution_stack_name"] and env["SolutionStackName"] != params["solution_stack_name"]:
+        updates.append(('SolutionStackName', env['SolutionStackName'], params['solution_stack_name']))
+
+    if params.get("template_name", None) and not env.has_key("TemplateName"):
+        updates.append(('TemplateName', None, params['template_name']))
+    elif env.has_key("TemplateName") and env["TemplateName"] != params["template_name"]:
+        updates.append(('TemplateName', env['TemplateName'], params['template_name']))
+
+    result = ebs.describe_configuration_settings(ApplicationName=params["app_name"],
+                                                 EnvironmentName=params["env_name"])
+
+    options = result["ConfigurationSettings"][0]["OptionSettings"]
+
+    for setting in params["option_settings"]:
+        change = new_or_changed_option(options, setting)
+        if change is not None:
+            updates.append(change)
+
+    return updates
+
+
+def new_or_changed_option(options, setting):
+    for option in options:
+        if option["Namespace"] == setting["Namespace"] and \
+                option["OptionName"] == setting["OptionName"]:
+
+            if (setting['Namespace'] in ['aws:autoscaling:launchconfiguration', 'aws:ec2:vpc'] and setting[
+                'OptionName'] in ['SecurityGroups', 'ELBSubnets', 'Subnets'] and set(
+                setting['Value'].split(',')).issubset(setting['Value'].split(','))) or \
+                    option["Value"] == setting["Value"]:
+                return None
+            else:
+                return option["Namespace"] + ':' + option["OptionName"], option["Value"], setting["Value"]
+
+    return setting["Namespace"] + ':' + setting["OptionName"], "<NEW>", setting["Value"]
+
+
+def check_env(ebs, app_name, env_name, module):
     state = module.params['state']
+    env = describe_env(ebs, app_name, env_name, ["Terminated", "Terminating"])
 
     result = {}
 
-    if state == 'present' and version is None:
-        result = dict(changed=True, output = "Version would be created")
-    elif state == 'present' and version.get("Description", None) != description:
-        result = dict(changed=True, output = "Version would be updated", version=version)
-    elif state == 'present' and version.get("Description", None) == description:
-        result = dict(changed=False, output="Version is up-to-date", version=version)
-    elif state == 'absent' and version is None:
-        result = dict(changed=False, output="Version does not exist")
-    elif state == 'absent' and version is not None:
-        result = dict(changed=True, output="Version will be deleted", version=version)
+    if state == 'present' and env is None:
+        result = dict(changed=True, output="Environment would be created")
+    elif state == 'present' and env is not None:
+        updates = update_required(ebs, env, module.params)
+        if len(updates) > 0:
+            result = dict(changed=True, output="Environment would be updated", env=env, updates=updates)
+        else:
+            result = dict(changed=False, output="Environment is up-to-date", env=env)
+    elif state == 'absent' and env is None:
+        result = dict(changed=False, output="Environment does not exist")
+    elif state == 'absent' and env is not None:
+        result = dict(changed=True, output="Environment will be deleted", env=env)
 
     module.exit_json(**result)
 
+
 def filter_empty(**kwargs):
-    return {k:v for k,v in kwargs.iteritems() if v}
+    return {k: v for k, v in kwargs.iteritems() if v}
+
 
 def main():
     argument_spec = ec2_argument_spec()
     argument_spec.update(dict(
-            app_name       = dict(type='str', required=True),
-            version_label  = dict(type='str', required=False),
-            s3_bucket      = dict(type='str', required=False),
-            s3_key         = dict(type='str', required=False),
-            description    = dict(type='str', required=False),
-            delete_source  = dict(type='bool',default=False),
-            state          = dict(choices=['present','absent','list'], default='present')
-        ),
+        app_name=dict(type='str', required=True),
+        env_name=dict(type='str', required=False),
+        version_label=dict(type='str', required=False),
+        description=dict(type='str', required=False),
+        state=dict(choices=['present', 'absent', 'list', 'details'], default='present'),
+        wait_timeout=dict(default=900, type='int'),
+        template_name=dict(type='str', required=False),
+        solution_stack_name=dict(type='str', required=False),
+        cname_prefix=dict(type='str', required=False),
+        option_settings=dict(type='list', default=[]),
+        tags=dict(type='dict', default=dict()),
+        options_to_remove=dict(type='list', default=[]),
+        tier_name=dict(default='WebServer', choices=['WebServer', 'Worker'])
+    ),
     )
-    module = AnsibleModule(argument_spec=argument_spec, supports_check_mode=True)
+    module = AnsibleModule(argument_spec=argument_spec,
+                           mutually_exclusive=[['solution_stack_name', 'template_name']],
+                           supports_check_mode=True)
 
     if not HAS_BOTO3:
         module.fail_json(msg='boto3 required for this module')
 
     app_name = module.params['app_name']
+    env_name = module.params['env_name']
     version_label = module.params['version_label']
     description = module.params['description']
     state = module.params['state']
-    delete_source = module.params['delete_source']
+    wait_timeout = module.params['wait_timeout']
+    template_name = module.params['template_name']
+    solution_stack_name = module.params['solution_stack_name']
+    cname_prefix = module.params['cname_prefix']
+    tags = module.params['tags']
+    option_settings = module.params['option_settings']
+    options_to_remove = module.params['options_to_remove']
 
-    if version_label is None:
-        if state != 'list':
-            module.fail_json(msg='Module parameter "version_label" is required if "state" is not "list"')
+    tier_type = 'Standard'
+    tier_name = module.params['tier_name']
 
-    if module.params['s3_bucket'] is None and module.params['s3_key'] is None:
-        if state == 'present':
-            module.fail_json(msg='Module parameter "s3_bucket" or "s3_key" is required if "state" is "present"')
+    if tier_name == 'Worker':
+        tier_type = 'SQS/HTTP'
 
-    if module.params['s3_bucket'] is not None:
-        s3_bucket = module.params['s3_bucket']
-
-    if module.params['s3_key'] is not None:
-        s3_key = module.params['s3_key']
-
-
-    result = {}
     region, ec2_url, aws_connect_params = get_aws_connection_info(module, boto3=True)
-
     if region:
         ebs = boto3_conn(module, conn_type='client', resource='elasticbeanstalk',
-                region=region, endpoint=ec2_url, **aws_connect_params)
+                         region=region, endpoint=ec2_url, **aws_connect_params)
     else:
         module.fail_json(msg='region must be specified')
 
+    update = False
+    result = {}
 
-    version = describe_version(ebs, app_name, version_label)
+    if state == 'list':
+        try:
+            env = describe_env(ebs, app_name, env_name, [])
+            result = dict(changed=False, env=[] if env is None else env)
+        except ClientError as e:
+            module.fail_json(msg=e.message, **camel_dict_to_snake_dict(e.response))
 
-    if module.check_mode and state != 'list':
-        check_version(ebs, version, module)
-        module.fail_json(msg='ASSERTION FAILURE: check_version() should not return control.')
+    if state == 'details':
+        try:
+            env = describe_env_config_settings(ebs, app_name, env_name)
+            result = dict(changed=False, env=env)
+        except ClientError as e:
+            module.fail_json(msg=e.message, **camel_dict_to_snake_dict(e.response))
 
+    if module.check_mode and (state != 'list' or state != 'details'):
+        check_env(ebs, app_name, env_name, module)
+        module.fail_json('ASSERTION FAILURE: check_version() should not return control.')
 
     if state == 'present':
-        if version is None:
-            create_req = ebs.create_application_version(**filter_empty(ApplicationName=app_name,
-                                                        VersionLabel=version_label,
-                                                        Description=description,
-                                                        SourceBundle={'S3Bucket':s3_bucket, 'S3Key':s3_key}))
-            version = describe_version(ebs, app_name, version_label)
+        try:
+            tags_to_apply = [{'Key': k, 'Value': v} for k, v in tags.iteritems()]
+            ebs.create_environment(**filter_empty(ApplicationName=app_name,
+                                                  EnvironmentName=env_name,
+                                                  VersionLabel=version_label,
+                                                  TemplateName=template_name,
+                                                  Tags=tags_to_apply,
+                                                  SolutionStackName=solution_stack_name,
+                                                  CNAMEPrefix=cname_prefix,
+                                                  Description=description,
+                                                  OptionSettings=option_settings,
+                                                  Tier={'Name': tier_name, 'Type': tier_type, 'Version': '1.0'}))
 
-            result = dict(changed=True, version=version)
-        else:
-            if version.get("Description", None) != description:
-                ebs.update_application_version(ApplicationName=app_name,
-                                               VersionLabel=version_label,
-                                               Description='' if description is None else description)
-                version = describe_version(ebs, app_name, version_label)
-
-                result = dict(changed=True, version=version)
+            env = wait_for(ebs, app_name, env_name, wait_timeout, status_is_ready)
+            result = dict(changed=True, env=env)
+        except ClientError as e:
+            if 'Environment %s already exists' % env_name in e.message:
+                update = True
             else:
-                result = dict(changed=False, version=version)
+                module.fail_json(msg=e.message, **camel_dict_to_snake_dict(e.response))
 
-    elif state == 'absent':
-        if version is None:
-            result = dict(changed=False, output='Version not found')
-        else:
-            ebs.delete_application_version(ApplicationName=app_name,
-                                           VersionLabel=version_label,
-                                           DeleteSourceBundle=delete_source)
-            result = dict(changed=True, version=version)
+    if update:
+        try:
+            env = describe_env(ebs, app_name, env_name, [])
+            updates = update_required(ebs, env, module.params)
+            if len(updates) > 0:
+                ebs.update_environment(**filter_empty(
+                    EnvironmentName=env_name,
+                    VersionLabel=version_label,
+                    TemplateName=template_name,
+                    SolutionStackName=solution_stack_name,
+                    Description=description,
+                    OptionSettings=option_settings))
 
-    else:
-        versions = list_versions(ebs, app_name, version_label)
-        result = dict(changed=False, versions=versions)
+                env = wait_for(ebs, app_name, env_name, wait_timeout,
+                               lambda environment: status_is_ready(environment) and
+                                                   version_is_updated(version_label, environment))
+
+                result = dict(changed=True, env=env, updates=updates)
+            else:
+                result = dict(changed=False, env=env)
+        except ClientError as e:
+            module.fail_json(msg=e.message, **camel_dict_to_snake_dict(e.response))
+
+    if state == 'absent':
+        try:
+            ebs.terminate_environment(EnvironmentName=env_name)
+            env = wait_for(ebs, app_name, env_name, wait_timeout, terminated)
+            result = dict(changed=True, env=env)
+        except ClientError as e:
+            if 'No Environment found for EnvironmentName = \'%s\'' % env_name in e.message:
+                result = dict(changed=False, output='Environment not found')
+            else:
+                module.fail_json(msg=e.message, **camel_dict_to_snake_dict(e.response))
 
     module.exit_json(**result)
 
+import time
+from ansible.module_utils.basic import *
+from ansible.module_utils.ec2 import boto3_conn, ec2_argument_spec, get_aws_connection_info, camel_dict_to_snake_dict
+
 if __name__ == '__main__':
     main()
+
