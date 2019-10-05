@@ -367,10 +367,9 @@ def main():
             result = dict(changed=True, env=env)
         except ClientError as e:
             print(e)
-            if e.response['Error']['Code'] == 'InvalidParameterValueException':
-                update = True
-            else:
-                module.fail_json(msg=e, **camel_dict_to_snake_dict(e.response))
+            update = True
+#            else:
+#                module.fail_json(msg=e, **camel_dict_to_snake_dict(e.response))
 
     if update:
         try:
