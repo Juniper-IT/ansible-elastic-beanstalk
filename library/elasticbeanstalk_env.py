@@ -366,6 +366,7 @@ def main():
             env = wait_for(ebs, app_name, env_name, wait_timeout, status_is_ready)
             result = dict(changed=True, env=env)
         except ClientError as e:
+            print(e)
             if 'Environment %s already exists' % env_name in e:
                 update = True
             else:
