@@ -336,14 +336,14 @@ def main():
             env = describe_env(ebs, app_name, env_name, [])
             result = dict(changed=False, env=[] if env is None else env)
         except ClientError as e:
-            module.fail_json(msg=e.message, **camel_dict_to_snake_dict(e.response))
+            module.fail_json(msg=e, **camel_dict_to_snake_dict(e.response))
 
     if state == 'details':
         try:
             env = describe_env_config_settings(ebs, app_name, env_name)
             result = dict(changed=False, env=env)
         except ClientError as e:
-            module.fail_json(msg=e.message, **camel_dict_to_snake_dict(e.response))
+            module.fail_json(msg=e, **camel_dict_to_snake_dict(e.response))
 
     if module.check_mode and (state != 'list' or state != 'details'):
         check_env(ebs, app_name, env_name, module)
@@ -366,10 +366,10 @@ def main():
             env = wait_for(ebs, app_name, env_name, wait_timeout, status_is_ready)
             result = dict(changed=True, env=env)
         except ClientError as e:
-            if 'Environment %s already exists' % env_name in e.message:
+            if 'Environment %s already exists' % env_name in e:
                 update = True
             else:
-                module.fail_json(msg=e.message, **camel_dict_to_snake_dict(e.response))
+                module.fail_json(msg=e, **camel_dict_to_snake_dict(e.response))
 
     if update:
         try:
@@ -392,7 +392,7 @@ def main():
             else:
                 result = dict(changed=False, env=env)
         except ClientError as e:
-            module.fail_json(msg=e.message, **camel_dict_to_snake_dict(e.response))
+            module.fail_json(msg=e, **camel_dict_to_snake_dict(e.response))
 
     if state == 'absent':
         try:
@@ -400,10 +400,10 @@ def main():
             env = wait_for(ebs, app_name, env_name, wait_timeout, terminated)
             result = dict(changed=True, env=env)
         except ClientError as e:
-            if 'No Environment found for EnvironmentName = \'%s\'' % env_name in e.message:
+            if 'No Environment found for EnvironmentName = \'%s\'' % env_name in e:
                 result = dict(changed=False, output='Environment not found')
             else:
-                module.fail_json(msg=e.message, **camel_dict_to_snake_dict(e.response))
+                module.fail_json(msg=e, **camel_dict_to_snake_dict(e.response))
 
     module.exit_json(**result)
 
