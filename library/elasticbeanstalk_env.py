@@ -1,5 +1,6 @@
 #!/usr/bin/python
 
+
 DOCUMENTATION = '''
 ---
 module: elasticbeanstalk_env
@@ -145,6 +146,7 @@ output:
 '''
 
 try:
+    from datetime import time
     import boto3
     from botocore.exceptions import ClientError
     HAS_BOTO3 = True
@@ -157,7 +159,7 @@ def wait_for(ebs, app_name, env_name, wait_timeout, testfunc):
     while True:
         try:
             env = describe_env(ebs, app_name, env_name, [])
-        except Exception, e:
+        except Exception as e:
             raise e
 
         if testfunc(env):
@@ -335,14 +337,14 @@ def main():
         try:
             env = describe_env(ebs, app_name, env_name, [])
             result = dict(changed=False, env=[] if env is None else env)
-        except ClientError, e:
+        except ClientError as e:
             module.fail_json(msg=e.message, **camel_dict_to_snake_dict(e.response))
 
     if state == 'details':
         try:
             env = describe_env_config_settings(ebs, app_name, env_name)
             result = dict(changed=False, env=env)
-        except ClientError, e:
+        except ClientError as e:
             module.fail_json(msg=e.message, **camel_dict_to_snake_dict(e.response))
 
     if module.check_mode and (state != 'list' or state != 'details'):
@@ -365,7 +367,7 @@ def main():
 
             env = wait_for(ebs, app_name, env_name, wait_timeout, status_is_ready)
             result = dict(changed=True, env=env)
-        except ClientError, e:
+        except ClientError as e:
             if 'Environment %s already exists' % env_name in e.message:
                 update = True
             else:
@@ -391,7 +393,7 @@ def main():
                 result = dict(changed=True, env=env, updates=updates)
             else:
                 result = dict(changed=False, env=env)
-        except ClientError, e:
+        except ClientError as e:
             module.fail_json(msg=e.message, **camel_dict_to_snake_dict(e.response))
 
     if state == 'absent':
@@ -399,7 +401,7 @@ def main():
             ebs.terminate_environment(EnvironmentName=env_name)
             env = wait_for(ebs, app_name, env_name, wait_timeout, terminated)
             result = dict(changed=True, env=env)
-        except ClientError, e:
+        except ClientError as e:
             if 'No Environment found for EnvironmentName = \'%s\'' % env_name in e.message:
                 result = dict(changed=False, output='Environment not found')
             else:
