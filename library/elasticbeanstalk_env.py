@@ -367,7 +367,7 @@ def main():
             result = dict(changed=True, env=env)
         except ClientError as e:
             print(e)
-            if 'Environment %s already exists' % env_name in e:
+            if e.response['Error']['Code'] == 'InvalidParameterValueException':
                 update = True
             else:
                 module.fail_json(msg=e, **camel_dict_to_snake_dict(e.response))
