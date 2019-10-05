@@ -275,7 +275,7 @@ def check_env(ebs, app_name, env_name, module):
     module.exit_json(**result)
 
 def filter_empty(**kwargs):
-    return {k:v for k,v in kwargs.iteritems() if v}
+    return {k:v for k,v in kwargs.items() if v}
 
 def main():
     argument_spec = ec2_argument_spec()
@@ -351,7 +351,7 @@ def main():
 
     if state == 'present':
         try:
-            tags_to_apply = [ {'Key':k,'Value':v} for k,v in tags.iteritems()]
+            tags_to_apply = [ {'Key':k,'Value':v} for k,v in tags.items()]
             ebs.create_environment(**filter_empty(ApplicationName=app_name,
                                                   EnvironmentName=env_name,
                                                   VersionLabel=version_label,
