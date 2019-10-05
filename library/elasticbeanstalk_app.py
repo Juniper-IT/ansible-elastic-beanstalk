@@ -134,7 +134,7 @@ def check_app(ebs, app, module):
     module.exit_json(**result)
 
 def filter_empty(**kwargs):
-    return {k:v for k,v in kwargs.iteritems() if v}
+    return {k:v for k,v in kwargs.items() if v}
 
 def main():
     argument_spec = ec2_argument_spec()
