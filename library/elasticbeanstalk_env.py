@@ -192,7 +192,7 @@ def describe_env(ebs, app_name, env_name, ignored_statuses):
     if not isinstance(envs, list): return None
 
     for env in envs:
-        if env.has_key("Status") and env["Status"] in ignored_statuses:
+        if "Status" in env  and env["Status"] in ignored_statuses:
             envs.remove(env)
 
     if len(envs) == 0: return None
@@ -206,7 +206,7 @@ def describe_env_config_settings(ebs, app_name, env_name):
     if not isinstance(envs, list): return None
 
     for env in envs:
-        if env.has_key("Status") and env["Status"] in ["Terminated","Terminating"]:
+        if "Status" in env  and env["Status"] in ["Terminated","Terminating"]:
             envs.remove(env)
 
     if len(envs) == 0: return None
@@ -221,9 +221,9 @@ def update_required(ebs, env, params):
     if params["solution_stack_name"] and env["SolutionStackName"] != params["solution_stack_name"]:
         updates.append(('SolutionStackName', env['SolutionStackName'], params['solution_stack_name']))
 
-    if params.get("template_name", None) and not env.has_key("TemplateName"):
+    if params.get("template_name", None) and not "TemplateName" in env:
         updates.append(('TemplateName', None, params['template_name']))
-    elif env.has_key("TemplateName") and env["TemplateName"] != params["template_name"]:
+    elif "TemplateName" in env and env["TemplateName"] != params["template_name"]:
         updates.append(('TemplateName', env['TemplateName'], params['template_name']))
 
     result = ebs.describe_configuration_settings(ApplicationName=params["app_name"],
