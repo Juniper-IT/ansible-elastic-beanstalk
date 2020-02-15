@@ -6,11 +6,13 @@ Ansible modules for working with Amazon Elastic Beanstalk
 Requirements
 ------------
 
-This module requires [boto3](https://github.com/boto/boto3) and Ansible >= 2.0
+This module requires [boto3](https://github.com/boto/boto3) and Ansible >= 2.8.0
 
 
 Versioning
 ------------
+For deployments on jnpr-it-accounts recommended version is the branch py3dev other branches are not recommended to be used. 
+
 
 Module version 2.X (master branch) requires boto3 and Ansible >= 2.0. Module
 version 1.X (release-1.0 branch) requires [boto](https://github.com/boto/boto)
