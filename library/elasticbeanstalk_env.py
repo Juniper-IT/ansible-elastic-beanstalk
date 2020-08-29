@@ -246,7 +246,7 @@ def new_or_changed_option(options, setting):
             if (setting['Namespace'] in ['aws:autoscaling:launchconfiguration','aws:ec2:vpc'] and \
                 setting['OptionName'] in ['SecurityGroups', 'ELBSubnets', 'Subnets'] and \
                 set(setting['Value'].split(',')).issubset(setting['Value'].split(','))) or \
-                option["Value"] == setting["Value"]:
+                'Value' in option and option["Value"] == setting["Value"]:
                 return None
             else:
                 if 'Value' in option:
